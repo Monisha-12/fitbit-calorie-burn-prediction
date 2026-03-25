@@ -1,0 +1,4 @@
+Cluster,Age,Weight (kg),Height (m),Max_BPM,Avg_BPM,Resting_BPM,Session_Duration (hours),Fat_Percentage,Water_Intake (liters),Workout_Frequency (days/week),Experience_Level,BMI,Calories_Burned (kcal),Gender_Male,Workout_Type_HIIT,Workout_Type_Mixed,Workout_Type_Strength,Workout_Type_Yoga
+0,28.63,68.53,1.68,192.05,159.5,72.74,0.69,24.44,3.37,3.24,0.54,24.17,262.22,0.5,0.3,0.19,0.21,0.11
+1,38.77,67.88,1.68,181.09,145.5,62.91,1.1,16.57,3.97,5.9,2.36,24.01,358.55,0.53,0.18,0.23,0.2,0.21
+2,48.15,68.25,1.68,171.11,138.99,72.62,0.69,24.74,3.44,3.23,0.51,24.1,207.57,0.49,0.13,0.17,0.2,0.28
