@@ -1,0 +1,3 @@
+Cluster,Age,Weight (kg),Height (m),BMI,Fat_Percentage,Max_BPM,Avg_BPM,Resting_BPM,Session_Duration (hours),Water_Intake (liters),Workout_Frequency (days/week),Experience_Level
+0,38.93,67.94,1.68,24.04,17.12,180.89,145.71,63.56,1.07,3.93,5.71,2.22
+1,38.25,68.4,1.68,24.13,25.05,181.75,149.48,73.25,0.67,3.37,3.09,0.43

@@ -1,120 +1,64 @@
+"""
+main.py
+========
+Single entry point for the Fitbit calorie burn prediction + workout
+clustering project. Runs from the repo root.
+
+Usage:
+    python main.py --task regression --data data/raw/Fitbit_dataset.csv
+    python main.py --task clustering --data data/raw/Fitbit_dataset.csv
+    python main.py --task all         --data data/raw/Fitbit_dataset.csv --tune
+"""
+
+import argparse
 import sys
 import os
 
-sys.path.append(os.path.abspath("."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-import pandas as pd
-from sklearn.model_selection import train_test_split
+from data_preprocessing import prepare  # noqa: E402
 
-from src.data_preprocessing import (
-    handle_missing_values,
-    encode_features,
-    cap_outliers,
-    scale_features
-)
 
-from src.train_regression import train_and_compare_models
+def run_regression(data_path, reports_dir, tune):
+    import train_regression
+    train_regression.main(data_path, reports_dir=reports_dir, tune=tune)
 
-from src.train_clustering import train_clustering_pipeline, save_cluster_plot
 
-def main():
-    print("🚀 Starting Fitbit ML Pipeline...")
+def run_clustering(data_path, reports_dir, visuals_dir, include_calories):
+    import train_clustering
+    train_clustering.main(data_path, reports_dir=reports_dir,
+                           visuals_dir=visuals_dir, include_calories=include_calories)
 
-    # 1. Load data
-    df = pd.read_csv("data/raw/Fitbit_dataset.csv")
 
-    # 2. Clean column names
-    df.columns = df.columns.str.strip()
+def save_processed_snapshot(data_path, processed_path):
+    df, _ = prepare(data_path)
+    os.makedirs(os.path.dirname(processed_path), exist_ok=True)
+    df.to_csv(processed_path, index=False)
+    print(f"Saved cleaned snapshot to {processed_path}")
 
-    # 3. Drop unwanted index column
-    if "Unnamed: 0" in df.columns:
-        df = df.drop("Unnamed: 0", axis=1)
-
-    # 4. 🔥 DROP LEAKAGE FEATURES
-    leakage_cols = ["Base_MET", "Effective_MET", "HR_Intensity"]
-
-    for col in leakage_cols:
-        if col in df.columns:
-            df = df.drop(col, axis=1)
-
-    print("Dropped leakage features:", leakage_cols)
-
-    # 5. Preprocessing
-    df = handle_missing_values(df)
-    df = cap_outliers(df)
-    df = encode_features(df)
-
-    print("Columns after encoding:")
-    print(df.columns.tolist())
-
-    # 6. Target
-    target_col = "Calories_Burned (kcal)"
-
-    X = df.drop(target_col, axis=1).astype(float)
-    y = df[target_col]
-
-    # 7. Split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
-
-    # 8. Scaling
-    X_train_scaled, X_test_scaled, scaler = scale_features(X_train, X_test)
-
-    # 9. Train + Compare models
-    results_df = train_and_compare_models(
-        X_train_scaled, X_test_scaled, y_train, y_test
-    )
-
-    print("\n📊 Model Comparison Results:")
-    print(results_df)
-
-    # 10. Save results
-    results_df.to_csv("data/reports/regression_model_results.csv", index=False)
-
-    print("\n📁 Results saved to data/reports/regression_model_results.csv")
-    print("✅ Pipeline completed!")
-
-    print("Final columns used for training:")
-    print(X.columns.tolist())
-
-    # =========================
-    # CLUSTERING TASK
-    # =========================
-    print("\n🔍 Starting Clustering Pipeline...")
-
-    clustering_results = train_clustering_pipeline(df, n_clusters=3)
-
-    print(f"Silhouette Score: {clustering_results['silhouette_score']:.4f}")
-    print("\nCluster Size Distribution:")
-    print(clustering_results["cluster_sizes"])
-
-    print("\nCluster Feature Means:")
-    print(clustering_results["cluster_feature_means"])
-
-    # Save clustering outputs
-    os.makedirs("data/reports", exist_ok=True)
-    os.makedirs("data/visuals", exist_ok=True)
-
-    clustering_results["cluster_feature_means"].to_csv(
-        "data/reports/cluster_feature_means.csv"
-    )
-
-    clustering_results["df_with_clusters"].to_csv(
-        "data/reports/clustered_fitbit_data.csv",
-        index=False
-    )
-
-    save_cluster_plot(
-        clustering_results["pca_data"],
-        clustering_results["cluster_labels"],
-        output_path="data/visuals/pca_clusters.png"
-    )
-
-    print("\n📁 Clustering results saved:")
-    print("- data/reports/cluster_feature_means.csv")
-    print("- data/reports/clustered_fitbit_data.csv")
-    print("- data/visuals/pca_clusters.png")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Fitbit calorie prediction + workout clustering")
+    parser.add_argument("--task", choices=["regression", "clustering", "all"], default="all")
+    parser.add_argument("--data", default="data/raw/Fitbit_dataset.csv")
+    parser.add_argument("--processed", default="data/processed/fitbit_clean.csv")
+    parser.add_argument("--reports_dir", default="reports")
+    parser.add_argument("--visuals_dir", default="visuals")
+    parser.add_argument("--tune", action="store_true", help="Tune Random Forest if it wins (regression)")
+    parser.add_argument("--include_calories", action="store_true",
+                         help="Include Calories_Burned as a clustering feature")
+    args = parser.parse_args()
+
+    save_processed_snapshot(args.data, args.processed)
+
+    if args.task in ("regression", "all"):
+        print("\n" + "=" * 60)
+        print("TASK 1: REGRESSION")
+        print("=" * 60)
+        run_regression(args.data, args.reports_dir, args.tune)
+
+    if args.task in ("clustering", "all"):
+        print("\n" + "=" * 60)
+        print("TASK 2: CLUSTERING")
+        print("=" * 60)
+        run_clustering(args.data, args.reports_dir, args.visuals_dir, args.include_calories)
