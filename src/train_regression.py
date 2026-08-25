@@ -12,6 +12,7 @@ Usage (from repo root):
 import argparse
 import os
 import warnings
+import joblib
 
 import numpy as np
 import pandas as pd
@@ -92,6 +93,8 @@ def tune_random_forest(pipeline, X_train, y_train):
 
 def main(data_path: str, reports_dir: str = "reports", tune: bool = False):
     os.makedirs(reports_dir, exist_ok=True)
+    models_dir = "models"
+    os.makedirs(models_dir, exist_ok=True)
     df, target = prepare(data_path)
 
     numeric_features = [
@@ -123,19 +126,67 @@ def main(data_path: str, reports_dir: str = "reports", tune: bool = False):
         fitted[name] = pipe
         print(f"{name:20s} MAE={metrics['MAE']:.2f}  RMSE={metrics['RMSE']:.2f}  R2={metrics['R2']:.4f}")
 
-    results_df = pd.DataFrame(results).set_index("Model").sort_values("R2", ascending=False)
-    out_path = os.path.join(reports_dir, "regression_model_results.csv")
+    results_df = (
+        pd.DataFrame(results)
+        .set_index("Model")
+        .sort_values("R2", ascending=False)
+    )
+
+    out_path = os.path.join(
+        reports_dir,
+        "regression_model_results.csv"
+    )
+
     results_df.to_csv(out_path)
+
     print(f"\nSaved {out_path}")
 
     best_name = results_df.index[0]
-    print(f"Best model: {best_name} (R2={results_df.loc[best_name, 'R2']:.4f})")
+
+    print(
+        f"Best model before tuning: {best_name} "
+        f"(R2={results_df.loc[best_name, 'R2']:.4f})"
+    )
+
+    # --------------------------------------------------
+    # OPTIONAL HYPERPARAMETER TUNING
+    # --------------------------------------------------
+
+    best_model = fitted[best_name]
 
     if tune and best_name == "Random Forest":
+
         print("Tuning Random Forest via GridSearchCV...")
-        best_pipe = tune_random_forest(fitted["Random Forest"], X_train, y_train)
-        preds = best_pipe.predict(X_test)
-        print("Tuned RF metrics:", evaluate(y_test, preds))
+
+        best_model = tune_random_forest(
+            fitted["Random Forest"],
+            X_train,
+            y_train
+        )
+
+        preds = best_model.predict(X_test)
+
+        tuned_metrics = evaluate(y_test, preds)
+
+        print("Tuned RF metrics:", tuned_metrics)
+
+
+    # --------------------------------------------------
+    # SAVE BEST MODEL
+    # --------------------------------------------------
+
+    models_dir = "models"
+    os.makedirs(models_dir, exist_ok=True)
+
+    model_path = os.path.join(
+        models_dir,
+        "calorie_model.pkl"
+    )
+
+    joblib.dump(best_model, model_path)
+
+    print(f"Saved best model to {model_path}")
+
 
     return results_df, fitted
 

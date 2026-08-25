@@ -227,7 +227,16 @@ def main(data_path: str, reports_dir="reports", visuals_dir="visuals", include_c
     score = silhouette_score(X_pca, labels)
     print(f"Final KMeans (k={best_k}) silhouette score: {score:.4f} "
           f"({'PASS' if score >= 0.15 else 'BELOW'} 0.15 threshold)")
+    metrics_path = os.path.join(reports_dir, "clustering_metrics.csv")
 
+    metrics_df = pd.DataFrame({
+        "Metric": ["Silhouette Score", "Acceptance Threshold"],
+        "Value": [score, 0.15]
+    })
+
+    metrics_df.to_csv(metrics_path, index=False)
+
+    print(f"Saved {metrics_path}")
     plot_pca_clusters(X_pca, labels, visuals_dir)
     plot_silhouette_diagram(X_pca, labels, visuals_dir)
 
