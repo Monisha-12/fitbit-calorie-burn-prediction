@@ -1,150 +1,172 @@
-# fitbit-calorie-burn-prediction
-
 # Fitbit: Calorie Burn Prediction & Workout Pattern Clustering
 
-## 📌 Project Overview
-This project focuses on building a machine learning system using Fitbit-like fitness data to:
+## Project Overview
 
-- Predict calories burned during workout sessions (Regression)
-- Identify hidden workout behavior patterns (Clustering)
+This project uses Machine Learning to predict calories burned during workout sessions and identify hidden workout behavior patterns using Fitbit fitness data.
 
-The solution combines supervised and unsupervised learning techniques to generate actionable insights for fitness applications.
+The project combines:
 
----
+- Supervised Learning
+- Unsupervised Learning
+- PCA Dimensionality Reduction
+- KMeans Clustering
+- Streamlit Deployment
 
-## 🎯 Problem Statement
-Accurate calorie estimation is essential in modern fitness applications. While wearable devices capture physiological signals, additional contextual factors influence calorie burn.
+## Domain
 
-This project aims to:
-- Predict calorie expenditure using regression models
-- Identify user workout patterns without labeled data using clustering techniques
+Fitness Analytics / Health Tech / Machine Learning
 
----
+## Objectives
 
-## 🧠 Approach
+1. Predict calories burned per workout session.
+2. Compare multiple regression algorithms.
+3. Identify hidden workout behavior patterns.
+4. Evaluate clustering quality using Silhouette Score.
+5. Deploy the prediction model using Streamlit.
 
-### 🔹 Task 1: Regression (Calorie Prediction)
-- Target: `Calories_Burned (kcal)`
-- Models Used:
-  - Linear Regression
-  - Ridge / Lasso
-  - KNN
-  - Decision Tree
-  - Random Forest
-  - SVR
-  - XGBoost
+## Dataset Features
 
-### 🔹 Task 2: Clustering (Workout Segmentation)
-- Removed:
-  - `Workout_Type` (label)
-  - `Calories_Burned (kcal)` (target)
-- Techniques:
-  - Feature Scaling
-  - PCA (Dimensionality Reduction)
-  - KMeans Clustering
-- Evaluation:
-  - Silhouette Score
+The dataset contains:
 
----
+- Age
+- Gender
+- Weight
+- Height
+- BMI
+- Fat Percentage
+- Maximum BPM
+- Average BPM
+- Resting BPM
+- Session Duration
+- Workout Type
+- Water Intake
+- Workout Frequency
+- Experience Level
+- Calories Burned
 
-## ⚙️ Tech Stack
-- Python
-- Pandas, NumPy
-- Scikit-learn
-- Matplotlib, Seaborn
+## Machine Learning Models
+
+The following regression models were compared:
+
+- Linear Regression
+- Ridge Regression
+- Lasso Regression
+- KNN Regressor
+- Decision Tree
+- Random Forest
+- SVR
 - XGBoost
 
----
+## Regression Evaluation
 
-## 📊 Key Results
+The models were evaluated using:
 
-### 🔹 Regression Performance
-| Model | R² Score |
-|------|---------|
-| Random Forest | ~0.90+ |
-| XGBoost | ~0.90+ |
-| Linear Models | ~0.92 |
+- MAE
+- RMSE
+- R² Score
 
-> Note: Initial near-perfect scores (~0.99) were due to **data leakage**, which was resolved by removing derived features.
+### Best Model
 
----
+XGBoost achieved the best performance in the current experiment:
 
-### 🔹 Clustering Results
-- Algorithm: KMeans (k=3)
-- Silhouette Score: ≥ 0.15 (acceptable for real-world data)
+- MAE: 3.81
+- RMSE: 5.85
+- R²: 0.9989
 
-#### Identified Clusters:
-- **Low Intensity Users** → Low BPM, short duration
-- **Moderate Users** → Balanced workouts
-- **High Intensity Users** → High BPM, long sessions
+## Clustering
 
----
+Workout behavior patterns were identified using:
 
-## ⚠️ Data Leakage Handling
-Features such as:
-- `Base_MET`
-- `Effective_MET`
-- `HR_Intensity`
+- Standard Scaling
+- PCA
+- KMeans
+- Silhouette Score
 
-were identified as derived features closely related to calorie computation.
+Hierarchical Clustering and DBSCAN were also implemented for comparison.
 
-These were removed to ensure realistic model performance and generalization.
+## Streamlit Dashboard
 
----
+The project includes an interactive Streamlit dashboard with:
 
-## 📁 Project Structure
+### Calorie Prediction
+Users can enter workout information and receive a predicted calorie burn value.
+
+### Model Performance
+Displays regression model comparison using MAE, RMSE and R².
+
+### Workout Clusters
+Displays cluster profiles, PCA visualization and Silhouette analysis.
+
+## Project Structure
+
 fitbit-calorie-burn-prediction/
-│
-├── data/
-│ ├── raw/
-│ └── processed/
-│
-├── notebooks/
-│ ├── 01_eda.ipynb
-│
-├── src/
-│ ├── data_preprocessing.py
-│ ├── train_regression.py
-│ ├── train_clustering.py
-│
-├── reports/
-│ ├── regression_model_results.csv
-│ ├── cluster_feature_means.csv
-│
-├── visuals/
-│ ├── pca_clusters.png
-│
+
+├── app.py
 ├── main.py
 ├── requirements.txt
-└── README.md
+├── README.md
+│
+├── data/
+│   ├── raw/
+│   └── processed/
+│
+├── models/
+│
+├── notebooks/
+│
+├── reports/
+│
+├── visuals/
+│
+└── src/
 
+## How to Run
 
----
+### 1. Clone the repository
 
-## 📈 Key Insights
-- Heart rate and session duration are the strongest predictors of calorie burn
-- Users naturally cluster into intensity groups without labeled workout types
-- Real-world fitness data has overlapping patterns, making clustering challenging but meaningful
+git clone <YOUR_GITHUB_URL>
 
----
+### 2. Create virtual environment
 
-## 🎯 Business Use Cases
-- Real-time calorie prediction in fitness apps
-- Personalized workout recommendations
-- User segmentation for engagement strategies
-- Product insights for wearable device companies
+python3 -m venv .venv
 
----
+### 3. Activate environment
 
-## 🚀 How to Run
+source .venv/bin/activate
 
-```bash
-git clone https://github.com/Monisha-12/fitbit-calorie-burn-prediction
-cd fitbit-calorie-burn-prediction
-
-python -m venv venv
-source venv/bin/activate
+### 4. Install dependencies
 
 pip install -r requirements.txt
 
-python main.py
+### 5. Run regression
+
+python main.py --task regression --data data/raw/Fitbit_dataset.csv
+
+### 6. Run clustering
+
+python main.py --task clustering --data data/raw/Fitbit_dataset.csv
+
+### 7. Run Streamlit
+
+streamlit run app.py
+
+## Business Use Cases
+
+- Real-time calorie estimation
+- Personalized fitness coaching
+- Workout recommendations
+- User segmentation
+- Nutrition planning
+- Fitness device optimization
+
+## Technologies
+
+Python  
+Pandas  
+NumPy  
+Scikit-learn  
+XGBoost  
+Matplotlib  
+Seaborn  
+Streamlit  
+Git/GitHub
